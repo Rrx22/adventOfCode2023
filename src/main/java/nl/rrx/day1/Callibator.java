@@ -10,27 +10,18 @@ import java.util.List;
 public class Callibator {
 
     public static void main(String[] args) throws URISyntaxException, IOException {
-        var testCalibrationDocument = List.of(
-                "1abc2",
-                "pqr3stu8vwx",
-                "a1b2c3d4e5f",
-                "treb7uchet");
-        var actualCalibrationDocument = FileUtil.readFile("day1");
+        var calibrationDocument = FileUtil.readFile("day1");
 
-        var x = findCalibrationValue(testCalibrationDocument);
-        var y = findCalibrationValue(actualCalibrationDocument);
+        var calibrationValue = findCalibrationValue(calibrationDocument);
 
-        System.out.println(x);
-        System.out.println(y);
+        System.out.println(calibrationValue);
     }
 
     private static int findCalibrationValue(List<String> calibrationDocument) {
-        int sum = 0;
-        for(var line : calibrationDocument) {
-            int sum1 = collectNumberFromLine(line);
-            sum += sum1;
-        }
-        return sum;
+        return calibrationDocument
+                .stream()
+                .mapToInt(Callibator::collectNumberFromLine)
+                .sum();
     }
 
     private static int collectNumberFromLine(String line) {
@@ -40,11 +31,10 @@ public class Callibator {
                 numbers.add(c);
             }
         }
-        var first = numbers.getFirst();
-        var last = numbers.getLast();
+        var first = numbers.getFirst().toString();
+        var last = numbers.getLast().toString();
 
-        String value = first.toString() + last.toString();
-        return Integer.parseInt(value);
+        return Integer.parseInt(first + last);
     }
 
 }

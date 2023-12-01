@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class UpdatedCallibator {
+public class UpdatedCalibrator {
 
     public static final Pattern NUMBER_PATTERN = Pattern.compile("(?=(one|two|three|four|five|six|seven|eight|nine|zero|\\d))");
     private static Map<String, String> numberMap = new HashMap<>();
@@ -29,7 +29,7 @@ public class UpdatedCallibator {
 
         return calibrationDocument
                 .stream()
-                .mapToInt(UpdatedCallibator::collectNumberFromLine)
+                .mapToInt(UpdatedCalibrator::collectNumberFromLine)
                 .sum();
     }
 

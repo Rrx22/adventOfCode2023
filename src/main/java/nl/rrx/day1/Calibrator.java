@@ -7,7 +7,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Callibator {
+public class Calibrator {
 
     public static void main(String[] args) throws URISyntaxException, IOException {
         var calibrationDocument = FileUtil.readFile("day1");
@@ -20,7 +20,7 @@ public class Callibator {
     private static int findCalibrationValue(List<String> calibrationDocument) {
         return calibrationDocument
                 .stream()
-                .mapToInt(Callibator::collectNumberFromLine)
+                .mapToInt(Calibrator::collectNumberFromLine)
                 .sum();
     }
 

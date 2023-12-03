@@ -1,4 +1,4 @@
-package nl.rrx;
+package aoc;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

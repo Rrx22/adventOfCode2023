@@ -1,6 +1,6 @@
-package nl.rrx.day2;
+package aoc.day2;
 
-import nl.rrx.FileUtil;
+import aoc.FileUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

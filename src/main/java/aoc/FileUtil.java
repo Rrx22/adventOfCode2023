@@ -15,7 +15,7 @@ public class FileUtil {
             var resourcePath = Paths.get(ClassLoader.getSystemResource(fileName).toURI());
             return Files.readAllLines(resourcePath);
         } catch (URISyntaxException | IOException e) {
-            throw new ChrismasException(e.getMessage(), e);
+            throw new ChristmasException(e.getMessage(), e);
         }
     }
 }

@@ -7,7 +7,7 @@ import java.util.*;
 public class Gondola {
 
     public static void main(String[] args) {
-        var engineSchematic = FileUtil.readFile("day3");
+        List<String> engineSchematic = FileUtil.readFile("day3");
         fixGondola(engineSchematic);
     }
 
@@ -23,8 +23,8 @@ public class Gondola {
             lineBelow = (i < engineSchematic.size()) ? parseSchematicLine(engineSchematic.get(i)) : null;
 
             if (mainLine != null) {
+                sumOfPartNumbers += computePartNumbers(mainLine, lineAbove, lineBelow);
                 sumOfGearNumbers += computeGearNumbers(mainLine, lineAbove, lineBelow);
-                sumOfPartNumbers += computePartNumbers(mainLine, lineBelow, lineAbove);
             }
             lineAbove = mainLine;
             mainLine = lineBelow;
@@ -34,10 +34,10 @@ public class Gondola {
         System.out.println("Gear numbers: " + sumOfGearNumbers);
     }
 
-    private static int computePartNumbers(SchematicLine mainLine, SchematicLine lineBelow, SchematicLine lineAbove) {
+    private static int computePartNumbers(SchematicLine mainLine, SchematicLine lineAbove, SchematicLine lineBelow) {
         int partNumbers = 0;
-        for (var number : mainLine.numbers) {
-            if (number.isAPartNumber(mainLine, lineBelow, lineAbove)) {
+        for (Number number : mainLine.numbers) {
+            if (number.isAPartNumber(mainLine, lineAbove, lineBelow)) {
                 partNumbers += number.value;
             }
         }
@@ -46,7 +46,7 @@ public class Gondola {
 
     private static int computeGearNumbers(SchematicLine mainLine, SchematicLine lineAbove, SchematicLine lineBelow) {
         int gearNumbers = 0;
-        for (var symbol : mainLine.symbols) {
+        for (Symbol symbol : mainLine.symbols) {
             if (symbol.value.equals("*")) {
                 gearNumbers += symbol.getGearNumber(mainLine, lineAbove, lineBelow);
             }
@@ -94,7 +94,7 @@ public class Gondola {
             numbers.add(new Number(Integer.parseInt(valueString), startIndex, lastIndex));
         }
 
-        public void addSymbol(String value, int index) {
+        void addSymbol(String value, int index) {
             symbols.add(new Symbol(String.valueOf(value), index));
         }
     }
@@ -113,7 +113,7 @@ public class Gondola {
     }
 
     record Symbol(String value, int index) {
-        public int getGearNumber(SchematicLine... lines) {
+        int getGearNumber(SchematicLine... lines) {
             List<Integer> numbersAdjacentToSymbol = Arrays.stream(lines)
                     .filter(Objects::nonNull) //filters out any null values
                     .flatMap(l -> l.numbers.stream()) // bundles all NUMBER lists into one

@@ -2,8 +2,6 @@ package aoc.day3;
 
 import aoc.FileUtil;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.*;
 
 public class Gondola {
@@ -22,7 +20,7 @@ public class Gondola {
         SchematicLine lineBelow;
 
         for (int i = 0; i <= engineSchematic.size(); i++) {
-            lineBelow = i < engineSchematic.size() ? parseSchematicLine(engineSchematic.get(i)) : null;
+            lineBelow = (i < engineSchematic.size()) ? parseSchematicLine(engineSchematic.get(i)) : null;
 
             if (mainLine != null) {
                 sumOfGearNumbers += computeGearNumbers(mainLine, lineAbove, lineBelow);
@@ -32,8 +30,8 @@ public class Gondola {
             mainLine = lineBelow;
         }
 
-        System.out.println(sumOfPartNumbers);
-        System.out.println(sumOfGearNumbers);
+        System.out.println("Part numbers: " + sumOfPartNumbers);
+        System.out.println("Gear numbers: " + sumOfGearNumbers);
     }
 
     private static int computePartNumbers(SchematicLine mainLine, SchematicLine lineBelow, SchematicLine lineAbove) {
@@ -72,9 +70,9 @@ public class Gondola {
                     digitFound = true;
                     startIndex = i;
                 }
-            } else {
+            } else { // handles end of number
                 if (digitFound) {
-                    schematicLine.addNumber(sb.toString(), startIndex, i - 1); // handles end of number
+                    schematicLine.addNumber(sb.toString(), startIndex, i - 1);
                     digitFound = false;
                     sb.setLength(0); // clears StringBuilder
                 }
@@ -91,9 +89,8 @@ public class Gondola {
         return schematicLine;
     }
 
-
     record SchematicLine(List<Number> numbers, List<Symbol> symbols) {
-        void addNumber(String valueString, int startIndex, int lastIndex){
+        void addNumber(String valueString, int startIndex, int lastIndex) {
             numbers.add(new Number(Integer.parseInt(valueString), startIndex, lastIndex));
         }
 
@@ -116,17 +113,16 @@ public class Gondola {
     }
 
     record Symbol(String value, int index) {
-        public int getGearNumber(SchematicLine ... lines) {
+        public int getGearNumber(SchematicLine... lines) {
             List<Integer> numbersAdjacentToSymbol = Arrays.stream(lines)
                     .filter(Objects::nonNull) //filters out any null values
                     .flatMap(l -> l.numbers.stream()) // bundles all NUMBER lists into one
                     .filter(n -> n.isAdjacentTo(this))
                     .map(n -> n.value)
                     .toList();
-            if (numbersAdjacentToSymbol.size() != 2) {
-                return 0;
-            }
-            return numbersAdjacentToSymbol.get(0) * numbersAdjacentToSymbol.get(1);
+            return (2 != numbersAdjacentToSymbol.size())
+                    ? 0
+                    : numbersAdjacentToSymbol.stream().reduce(1, (a, b) -> a * b);
         }
     }
 

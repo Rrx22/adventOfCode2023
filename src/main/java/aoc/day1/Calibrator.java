@@ -2,8 +2,6 @@ package aoc.day1;
 
 import aoc.FileUtil;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 

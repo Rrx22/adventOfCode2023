@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class UpdatedSnowIslandGame {
 
-    public static void main(String[] args) throws URISyntaxException, IOException {
+    public static void main(String[] args) {
 
         List<String> games = FileUtil.readFile("day2-1");
 

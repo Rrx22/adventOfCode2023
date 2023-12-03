@@ -15,7 +15,7 @@ public class UpdatedCalibrator {
     public static final Pattern NUMBER_PATTERN = Pattern.compile("(?=(one|two|three|four|five|six|seven|eight|nine|zero|\\d))");
     private static Map<String, String> numberMap = new HashMap<>();
 
-    public static void main(String[] args) throws URISyntaxException, IOException {
+    public static void main(String[] args) {
 
         var calibrationDocument = FileUtil.readFile("day1-2");
         fillNumberMap();

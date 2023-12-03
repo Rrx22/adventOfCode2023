@@ -8,17 +8,13 @@ import java.util.*;
 
 public class Gondola {
 
-    public static void main(String[] args) throws URISyntaxException, IOException {
+    public static void main(String[] args) {
         var engineSchematic = FileUtil.readFile("day3");
-
-        int missingPart = searchSchematicForPartNumbers(engineSchematic);
-        System.out.println(missingPart);
-
-        int missingGear = searchSchematicForGearNumbers(engineSchematic);
-        System.out.println(missingGear);
+        fixGondola(engineSchematic);
     }
 
-    private static int searchSchematicForGearNumbers(List<String> engineSchematic) {
+    private static void fixGondola(List<String> engineSchematic) {
+        int sumOfPartNumbers = 0;
         int sumOfGearNumbers = 0;
 
         SchematicLine mainLine = null;
@@ -29,39 +25,35 @@ public class Gondola {
             lineBelow = i < engineSchematic.size() ? parseSchematicLine(engineSchematic.get(i)) : null;
 
             if (mainLine != null) {
-                for (var symbol : mainLine.symbols) {
-                    if (symbol.value.equals("*")) {
-                        sumOfGearNumbers += symbol.getGearNumber(mainLine, lineAbove, lineBelow);
-                    }
-                }
+                sumOfGearNumbers += computeGearNumbers(mainLine, lineAbove, lineBelow);
+                sumOfPartNumbers += computePartNumbers(mainLine, lineBelow, lineAbove);
             }
             lineAbove = mainLine;
             mainLine = lineBelow;
         }
-        return sumOfGearNumbers;
+
+        System.out.println(sumOfPartNumbers);
+        System.out.println(sumOfGearNumbers);
     }
 
-    private static int searchSchematicForPartNumbers(List<String> engineSchematic) {
-        int sumOfPartNumbers = 0;
-
-        SchematicLine mainLine = null;
-        SchematicLine lineAbove = null;
-        SchematicLine lineBelow;
-
-        for (int i = 0; i <= engineSchematic.size(); i++) {
-            lineBelow = i < engineSchematic.size() ? parseSchematicLine(engineSchematic.get(i)) : null;
-
-            if (mainLine != null) {
-                for (var number : mainLine.numbers) {
-                    if (number.isAPartNumber(mainLine, lineBelow, lineAbove)) {
-                        sumOfPartNumbers += number.value;
-                    }
-                }
+    private static int computePartNumbers(SchematicLine mainLine, SchematicLine lineBelow, SchematicLine lineAbove) {
+        int partNumbers = 0;
+        for (var number : mainLine.numbers) {
+            if (number.isAPartNumber(mainLine, lineBelow, lineAbove)) {
+                partNumbers += number.value;
             }
-            lineAbove = mainLine;
-            mainLine = lineBelow;
         }
-        return sumOfPartNumbers;
+        return partNumbers;
+    }
+
+    private static int computeGearNumbers(SchematicLine mainLine, SchematicLine lineAbove, SchematicLine lineBelow) {
+        int gearNumbers = 0;
+        for (var symbol : mainLine.symbols) {
+            if (symbol.value.equals("*")) {
+                gearNumbers += symbol.getGearNumber(mainLine, lineAbove, lineBelow);
+            }
+        }
+        return gearNumbers;
     }
 
     private static SchematicLine parseSchematicLine(String line) {

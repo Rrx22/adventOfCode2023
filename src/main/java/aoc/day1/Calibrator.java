@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Calibrator {
 
-    public static void main(String[] args) throws URISyntaxException, IOException {
+    public static void main(String[] args) {
         var calibrationDocument = FileUtil.readFile("day1");
 
         var calibrationValue = findCalibrationValue(calibrationDocument);

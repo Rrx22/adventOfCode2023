@@ -70,10 +70,9 @@ public class ScratchCardAnalyzer {
                     .filter(winningNumbers::contains)
                     .count();
         }
+
         int getTotalValue() {
-            return getMatches() == 0
-                    ? 0
-                    : (int) Math.pow(2, (double) getMatches() - 1);
+            return 1 << getMatches() - 1;
         }
     }
 

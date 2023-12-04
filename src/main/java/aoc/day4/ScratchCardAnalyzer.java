@@ -42,15 +42,14 @@ public class ScratchCardAnalyzer {
         var idSplit = row.split(":");
         var scratchCardSplit = idSplit[1].split("\\|");
 
-        int scratchCardID = Integer.parseInt(idSplit[0].replace("Card ", "").strip());
+        int scratchCardID = Integer.parseInt(idSplit[0].replace("Card", "").trim());
         var winningNumbers = scratchCardSplit[0];
         var ownNumbers = scratchCardSplit[1];
         return new ScratchCard(scratchCardID, convertToList(winningNumbers), convertToList(ownNumbers));
     }
 
     private static List<Integer> convertToList(String numbers) {
-        return Arrays.stream(numbers.split(" "))
-                .filter(s -> !s.isEmpty())
+        return Arrays.stream(numbers.trim().split("\\s+"))
                 .map(Integer::parseInt)
                 .toList();
     }

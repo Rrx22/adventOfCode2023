@@ -50,18 +50,9 @@ public class ScratchCardAnalyzer {
 
     private static List<Integer> convertToList(String numbers) {
         return Arrays.stream(numbers.split(" "))
-                .filter(ScratchCardAnalyzer::isANumber)
+                .filter(s -> !s.isEmpty())
                 .map(Integer::parseInt)
                 .toList();
-    }
-
-    private static boolean isANumber(String value) {
-        try {
-            Integer.parseInt(value);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     record ScratchCard(int id, List<Integer> winningNumbers, List<Integer> ownNumbers) {

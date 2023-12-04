@@ -14,8 +14,8 @@ public class ScratchCardAnalyzer {
     public static void main(String[] args) {
         var inputList = FileUtil.readFile("day4");
         scratchCards = inputList.stream().map(ScratchCardAnalyzer::mapToScratchCard).toList();
-        System.out.println("Total scratch cards value: " + analyzeScratchCards() + " = 26426");
-        System.out.println("Amount of scratch cards: " + analyzeScratchCardsCorrectly() + " = 6227972");
+        System.out.println("Total scratch cards value: " + analyzeScratchCards());
+        System.out.println("Amount of scratch cards: " + analyzeScratchCardsCorrectly());
     }
 
     private static int analyzeScratchCards() {

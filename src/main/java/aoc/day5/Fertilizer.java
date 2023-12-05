@@ -1,56 +1,111 @@
 package aoc.day5;
 
+import aoc.ChristmasException;
 import aoc.FileUtil;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Fertilizer {
 
-    /**
-     * <a href="https://en.wikipedia.org/wiki/Almanac">Almanac</a>
-     */
-    private static List<String> almanac;
+    private static List<Instruction> toLocationInstruction;
+    private static List<Instruction> toSoilInstructions;
+    private static List<Instruction> toFertilizerInstructions;
+    private static List<Instruction> toWaterInstruction;
+    private static List<Instruction> toLightInstruction;
+    private static List<Instruction> toTemperatureInstruction;
+    private static List<Instruction> toHumidityInstruction;
 
     public static void main(String[] args) {
-        almanac = FileUtil.readFile("day5");
-        System.out.println("Plant too few seeds  : " + plantFewSeeds() + " is " + (plantFewSeeds() == 346433842));
-//        System.out.println("Plant many many seeds:  " + plantManySeeds());
+        var almanac = FileUtil.readFile("day5");
+        parseInstructions(almanac);
+        System.out.println("Plant too few seeds  : " + plantFewSeeds(almanac.get(0)) + " is " + (plantFewSeeds(almanac.get(0)) == 346433842));
+        System.out.println("Plant many many seeds:  " + plantManySeeds(almanac.get(0)));
     }
 
-
-    private static long plantFewSeeds() {
-        var seeds = getNumbers(almanac.get(0).replace("seeds: ", "").trim());
-        return
-        return findLowestLocationNumber(seeds);
+    private static void parseInstructions(List<String> almanac) {
+        toSoilInstructions = parseInstructions("seed-to-soil map:", almanac);
+        toFertilizerInstructions = parseInstructions("soil-to-fertilizer map:", almanac);
+        toWaterInstruction = parseInstructions("fertilizer-to-water map:", almanac);
+        toLightInstruction = parseInstructions("water-to-light map:", almanac);
+        toTemperatureInstruction = parseInstructions("light-to-temperature map:", almanac);
+        toHumidityInstruction = parseInstructions("temperature-to-humidity map:", almanac);
+        toLocationInstruction = parseInstructions("humidity-to-location map:", almanac);
     }
 
-    private static long plantManySeeds() {
-        var fewSeeds = getNumbers(almanac.get(0).replace("seeds: ", "").trim());
-        List<Long> seeds = new ArrayList<>();
-        for (int i = 0; i < fewSeeds.size(); i += 2) {
-            long start = fewSeeds.get(i);
-            long range = fewSeeds.get(i + 1);
-            for (long j = start; j < start + range; j++) {
-                seeds.add(j);
-            }
-            seeds.add(start);
+    private static long plantFewSeeds(String seeds) {
+        var fewSeeds = getNumbers(seeds.replace("seeds: ", "").trim());
+        return fewSeeds.stream()
+                .mapToLong(Fertilizer::findLocationNumber)
+                .min()
+                .orElse(0);
+    }
+
+    private static long plantManySeeds(String seeds) {
+        var fewSeeds = getNumbers(seeds.replace("seeds: ", "").trim());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
+        List<Future<Long>> lowestLocations = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            int processNumber = i + 1;
+            Future future = executorService.submit(() -> getLowestLocationNumber(fewSeeds.get(processNumber - 1), fewSeeds.get(processNumber), processNumber));
+            lowestLocations.add(future);
         }
-        return findLowestLocationNumber(seeds);
+
+        executorService.shutdown();
+
+        long lowestLocationNumber = Long.MAX_VALUE;
+        for (var l : lowestLocations) {
+            try {
+                long location = l.get();
+                if (location < lowestLocationNumber) lowestLocationNumber = location;
+            } catch (InterruptedException | ExecutionException e) {
+                throw new ChristmasException(e.getMessage(), e);
+            }
+        }
+        return lowestLocationNumber;
     }
 
-    private static long findLowestLocationNumber(List<Long> seeds) {
-        var soil = decryptInstructions("seed-to-soil map:", seeds);
-        var fertilizer = decryptInstructions("soil-to-fertilizer map:", soil);
-        var water = decryptInstructions("fertilizer-to-water map:", fertilizer);
-        var light = decryptInstructions("water-to-light map:", water);
-        var temperature = decryptInstructions("light-to-temperature map:", light);
-        var humidity = decryptInstructions("temperature-to-humidity map:", temperature);
-        var location = decryptInstructions("humidity-to-location map:", humidity);
-
-        return location.stream().min(Long::compareTo).orElse(0L);
+    private static long getLowestLocationNumber(long start, long range, int processNumber) {
+        System.out.println("Elf-" + processNumber + ": START");
+        long lowestLocationNumber = Long.MAX_VALUE;
+        for (long j = start; j < start + range; j++) {
+            long locationNumber = findLocationNumber(j);
+            boolean b = locationNumber < lowestLocationNumber;
+            if (b) {
+                lowestLocationNumber = locationNumber;
+                System.out.println("Elf-" + processNumber + ": new lowest number " + lowestLocationNumber);
+            }
+        }
+        System.out.println("Elf-" + processNumber + ": FINISHED WITH NUMBER " + lowestLocationNumber);
+        return lowestLocationNumber;
     }
 
-    private static List<Long> decryptInstructions(String title, List<Long> refNumbers) {
+    private static long findLocationNumber(long seed) {
+        var soil = decryptInstructions(toSoilInstructions, seed);
+        var fertilizer = decryptInstructions(toFertilizerInstructions, soil);
+        var water = decryptInstructions(toWaterInstruction, fertilizer);
+        var light = decryptInstructions(toLightInstruction, water);
+        var temperature = decryptInstructions(toTemperatureInstruction, light);
+        var humidity = decryptInstructions(toHumidityInstruction, temperature);
+        var location = decryptInstructions(toLocationInstruction, humidity);
+        return location;
+    }
+
+    private static long decryptInstructions(List<Instruction> instructions, long refNumber) {
+        long value = 0L;
+        for (var instruction : instructions) {
+            if (instruction.isBetween(refNumber)) {
+                value = instruction.computeValue(refNumber);
+            }
+        }
+        return (value == 0L) ? refNumber : value;
+    }
+
+    private static List<Instruction> parseInstructions(String title, List<String> almanac) {
         List<Instruction> instructions = new ArrayList<>();
         int index = almanac.indexOf(title) + 1;
         String line = almanac.get(index);
@@ -63,30 +118,14 @@ public class Fertilizer {
             index += 1;
             line = index >= almanac.size() ? "" : almanac.get(index);
         }
-
-        List<Long> results = new ArrayList<>();
-        for (var number : refNumbers) {
-            Long value = 0L;
-            for (var instruction : instructions) {
-                if (instruction.isBetween(number)) {
-                    value = instruction.computeValue(number);
-                }
-            }
-            results.add(value == 0L ? number : value);
-        }
-        return results;
+        return instructions;
     }
 
     private static List<Long> getNumbers(String line) {
         var numbers = line.split(" ");
         List<Long> list = new ArrayList<>();
         for (String number : numbers) {
-            try {
-                Long parseInt = Long.parseLong(number);
-                list.add(parseInt);
-            } catch (NumberFormatException e) {
-                System.out.println(e.getMessage());
-            }
+            list.add(Long.parseLong(number));
         }
         return list;
     }

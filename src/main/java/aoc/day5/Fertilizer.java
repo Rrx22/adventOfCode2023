@@ -1,9 +1,11 @@
 package aoc.day5;
 
-import aoc.ChristmasException;
 import aoc.FileUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,14 +21,24 @@ public class Fertilizer {
     private static List<Instruction> toTemperatureInstruction;
     private static List<Instruction> toHumidityInstruction;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         var almanac = FileUtil.readFile("day5");
-        parseInstructions(almanac);
-        System.out.println("Plant too few seeds  : " + plantFewSeeds(almanac.get(0)) + " is " + (plantFewSeeds(almanac.get(0)) == 346433842));
-        System.out.println("Plant many many seeds:  " + plantManySeeds(almanac.get(0)));
+        initInstructions(almanac);
+
+        // roughly 2ms
+        var startTime = System.currentTimeMillis();
+        var result = plantFewSeeds(almanac.get(0));
+        var endTime = System.currentTimeMillis();
+        System.out.println("Plant too few seeds  : " + result + " in " + (endTime - startTime) + "ms");
+
+        // roughly 2 minutes
+        startTime = System.currentTimeMillis();
+        result = plantManySeeds(almanac.get(0));
+        endTime = System.currentTimeMillis();
+        System.out.println("Plant many many seeds:  " + result + " in " + (endTime - startTime) + "ms");
     }
 
-    private static void parseInstructions(List<String> almanac) {
+    private static void initInstructions(List<String> almanac) {
         toSoilInstructions = parseInstructions("seed-to-soil map:", almanac);
         toFertilizerInstructions = parseInstructions("soil-to-fertilizer map:", almanac);
         toWaterInstruction = parseInstructions("fertilizer-to-water map:", almanac);
@@ -41,46 +53,39 @@ public class Fertilizer {
         return fewSeeds.stream()
                 .mapToLong(Fertilizer::findLocationNumber)
                 .min()
-                .orElse(0);
+                .orElse(0L);
     }
 
-    private static long plantManySeeds(String seeds) {
+    private static long plantManySeeds(String seeds) throws ExecutionException, InterruptedException {
         var fewSeeds = getNumbers(seeds.replace("seeds: ", "").trim());
 
         ExecutorService executorService = Executors.newFixedThreadPool(8);
         List<Future<Long>> lowestLocations = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < fewSeeds.size(); i += 2) {
             int processNumber = i + 1;
             Future future = executorService.submit(() -> getLowestLocationNumber(fewSeeds.get(processNumber - 1), fewSeeds.get(processNumber), processNumber));
             lowestLocations.add(future);
         }
-
         executorService.shutdown();
 
         long lowestLocationNumber = Long.MAX_VALUE;
         for (var l : lowestLocations) {
-            try {
-                long location = l.get();
-                if (location < lowestLocationNumber) lowestLocationNumber = location;
-            } catch (InterruptedException | ExecutionException e) {
-                throw new ChristmasException(e.getMessage(), e);
-            }
+            long location = l.get();
+            if (location < lowestLocationNumber) lowestLocationNumber = location;
         }
         return lowestLocationNumber;
     }
 
     private static long getLowestLocationNumber(long start, long range, int processNumber) {
-        System.out.println("Elf-" + processNumber + ": START");
         long lowestLocationNumber = Long.MAX_VALUE;
-        for (long j = start; j < start + range; j++) {
-            long locationNumber = findLocationNumber(j);
-            boolean b = locationNumber < lowestLocationNumber;
-            if (b) {
+        var startTime = System.currentTimeMillis();
+        for (long i = start; i < (start + range); i++) {
+            long locationNumber = findLocationNumber(i);
+            if (locationNumber < lowestLocationNumber) {
                 lowestLocationNumber = locationNumber;
-                System.out.println("Elf-" + processNumber + ": new lowest number " + lowestLocationNumber);
             }
         }
-        System.out.println("Elf-" + processNumber + ": FINISHED WITH NUMBER " + lowestLocationNumber);
+        System.out.println("Seed " + processNumber + ": " + lowestLocationNumber + " (" + (System.currentTimeMillis() - startTime) + "ms)");
         return lowestLocationNumber;
     }
 
@@ -91,8 +96,7 @@ public class Fertilizer {
         var light = decryptInstructions(toLightInstruction, water);
         var temperature = decryptInstructions(toTemperatureInstruction, light);
         var humidity = decryptInstructions(toHumidityInstruction, temperature);
-        var location = decryptInstructions(toLocationInstruction, humidity);
-        return location;
+        return decryptInstructions(toLocationInstruction, humidity);
     }
 
     private static long decryptInstructions(List<Instruction> instructions, long refNumber) {
@@ -107,40 +111,29 @@ public class Fertilizer {
 
     private static List<Instruction> parseInstructions(String title, List<String> almanac) {
         List<Instruction> instructions = new ArrayList<>();
-        int index = almanac.indexOf(title) + 1;
-        String line = almanac.get(index);
-        while (!line.isEmpty()) {
-            var numbers = getNumbers(line);
-            long dest = numbers.get(0);
-            long src = numbers.get(1);
-            long range = numbers.get(2);
-            instructions.add(new Instruction(dest, src, range));
-            index += 1;
-            line = index >= almanac.size() ? "" : almanac.get(index);
+        Iterator<String> iterator = almanac.listIterator(almanac.indexOf(title) + 1);
+        while (iterator.hasNext()) {
+            String line = iterator.next();
+            if (line.isEmpty()) break;
+            List<Long> numbers = getNumbers(line);
+            instructions.add(new Instruction(numbers.get(0), numbers.get(1), numbers.get(2)));
         }
         return instructions;
     }
 
     private static List<Long> getNumbers(String line) {
-        var numbers = line.split(" ");
-        List<Long> list = new ArrayList<>();
-        for (String number : numbers) {
-            list.add(Long.parseLong(number));
-        }
-        return list;
+        return Arrays.stream(line.split("\\s+"))
+                .map(Long::parseLong)
+                .toList();
     }
 
     record Instruction(long dest, long src, long range) {
         boolean isBetween(long val) {
-            if (val >= src && val < src + range) {
-                return true;
-            }
-            return false;
+            return val >= src && val < src + range;
         }
 
         public Long computeValue(Long value) {
             return dest + value - src;
         }
     }
-
 }

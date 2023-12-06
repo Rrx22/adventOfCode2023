@@ -1,5 +1,6 @@
 package aoc.day6;
 
+import aoc.ChristmasException;
 import aoc.FileUtil;
 
 import java.util.Arrays;
@@ -43,6 +44,6 @@ public class BoatRace {
                 return numberOfOptions;
             }
         }
-        return 0;
+        throw new ChristmasException("Option calculation failed.");
     }
 }

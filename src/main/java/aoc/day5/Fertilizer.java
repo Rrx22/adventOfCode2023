@@ -1,5 +1,6 @@
 package aoc.day5;
 
+import aoc.ChristmasException;
 import aoc.FileUtil;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class Fertilizer {
         return fewSeeds.stream()
                 .mapToLong(Fertilizer::findLocationNumber)
                 .min()
-                .orElse(0L);
+                .orElseThrow();
     }
 
     private static long plantManySeeds(String seeds) throws ExecutionException, InterruptedException {

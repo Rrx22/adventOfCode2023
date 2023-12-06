@@ -3,6 +3,7 @@ package aoc.day3;
 import aoc.FileUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Gondola {
 

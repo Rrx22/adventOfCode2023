@@ -3,17 +3,15 @@ package aoc.day2;
 import aoc.FileUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class UpdatedSnowIslandGame {
 
     public static void main(String[] args) {
-
         List<String> games = FileUtil.readFile("day2-1");
-
-        int gameOutcome = playSnowIslandGame(games);
-        System.out.println(gameOutcome);
+        System.out.println(playSnowIslandGame(games));
     }
 
     private static int playSnowIslandGame(List<String> gameLines) {
@@ -27,27 +25,21 @@ public class UpdatedSnowIslandGame {
     }
 
     private static int computeSnowIslandGamePower(List<BagGrab> grabs) {
-        var minimumAmounts = grabs.stream()
-                .collect(Collectors.toMap(
-                        BagGrab::color,
-                        BagGrab::amount,
-                        (amount1, amount2) -> amount1 > amount2 ? amount1 : amount2
-                ));
-        return minimumAmounts.get("red") * minimumAmounts.get("green") * minimumAmounts.get("blue");
+        return grabs.stream()
+                .collect(Collectors.toMap(BagGrab::color, BagGrab::amount, (a, b) -> a > b ? a : b))
+                .values()
+                .stream()
+                .reduce(1, (a, b) -> a * b);
     }
 
     private static List<BagGrab> mapToBagGrabs(String game) {
-        List<BagGrab> bagGrabs = new ArrayList<>();
-
         var allGrabs = game.split("; |, ");
-        for (var grab : allGrabs) {
-            var splitGrab = grab.split(" ");
-            var amount = Integer.parseInt(splitGrab[0]);
-            var color = splitGrab[1];
-            bagGrabs.add(new BagGrab(amount, color));
-        }
-        return bagGrabs;
+         return Arrays.stream(allGrabs)
+                .map(s -> s.split(" "))
+                .map(a -> new BagGrab(Integer.parseInt(a[0]), a[1]))
+                .toList();
     }
 
-    record BagGrab(int amount, String color) {}
+    record BagGrab(int amount, String color) {
+    }
 }

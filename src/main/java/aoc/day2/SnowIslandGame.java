@@ -10,13 +10,9 @@ public class SnowIslandGame {
     private static List<BagGrab> ruleBook;
 
     public static void main(String[] args) {
-
         List<String> games = FileUtil.readFile("day2-1");
-
         setRules();
-
-        int snowIslandGameOutcome = playSnowIslandGame(games);
-        System.out.println(snowIslandGameOutcome);
+        System.out.println(playSnowIslandGame(games));
     }
 
     private static int playSnowIslandGame(List<String> gameLines) {
@@ -66,5 +62,6 @@ public class SnowIslandGame {
                 new BagGrab(14, "blue")
         );
     }
+
     record BagGrab(int amount, String color) {}
 }

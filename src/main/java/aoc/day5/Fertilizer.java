@@ -1,6 +1,5 @@
 package aoc.day5;
 
-import aoc.ChristmasException;
 import aoc.FileUtil;
 
 import java.util.ArrayList;
@@ -30,13 +29,13 @@ public class Fertilizer {
         var startTime = System.currentTimeMillis();
         var result = plantFewSeeds(almanac.get(0));
         var endTime = System.currentTimeMillis();
-        System.out.println("Plant too few seeds  : " + result + " in " + (endTime - startTime) + "ms");
+        System.out.println("Plant only 20 seeds with result: " + result + " in " + (endTime - startTime) + "ms");
 
         // roughly 2 minutes
         startTime = System.currentTimeMillis();
         result = plantManySeeds(almanac.get(0));
         endTime = System.currentTimeMillis();
-        System.out.println("Plant many many seeds:  " + result + " in " + (endTime - startTime) + "ms");
+        System.out.println("Plant many many seeds with result: " + result + " in " + (endTime - startTime) + "ms");
     }
 
     private static void initInstructions(List<String> almanac) {
@@ -60,14 +59,17 @@ public class Fertilizer {
     private static long plantManySeeds(String seeds) throws ExecutionException, InterruptedException {
         var fewSeeds = getNumbers(seeds.replace("seeds: ", "").trim());
 
-        ExecutorService executorService = Executors.newFixedThreadPool(8);
-        List<Future<Long>> lowestLocations = new ArrayList<>();
-        for (int i = 0; i < fewSeeds.size(); i += 2) {
-            int processNumber = i + 1;
-            Future future = executorService.submit(() -> getLowestLocationNumber(fewSeeds.get(processNumber - 1), fewSeeds.get(processNumber), processNumber));
-            lowestLocations.add(future);
+        List<Future<Long>> lowestLocations;
+        try (ExecutorService executorService = Executors.newFixedThreadPool(8)) {
+            lowestLocations = new ArrayList<>();
+            for (int i = 0; i < fewSeeds.size(); i += 2) {
+                int processNumber = i / 2 + 1;
+                int index = i;
+                Future<Long> future = executorService.submit(() -> getLowestLocationNumber(fewSeeds.get(index), fewSeeds.get(index + 1), processNumber));
+                lowestLocations.add(future);
+            }
+            executorService.shutdown();
         }
-        executorService.shutdown();
 
         long lowestLocationNumber = Long.MAX_VALUE;
         for (var l : lowestLocations) {
@@ -78,6 +80,7 @@ public class Fertilizer {
     }
 
     private static long getLowestLocationNumber(long start, long range, int processNumber) {
+        System.out.printf("BEGIN Seed bulk %d (%,d seeds)%n", processNumber, range);
         long lowestLocationNumber = Long.MAX_VALUE;
         var startTime = System.currentTimeMillis();
         for (long i = start; i < (start + range); i++) {
@@ -86,7 +89,8 @@ public class Fertilizer {
                 lowestLocationNumber = locationNumber;
             }
         }
-        System.out.println("Seed " + processNumber + ": " + lowestLocationNumber + " (" + (System.currentTimeMillis() - startTime) + "ms)");
+        System.out.printf("PLANTED Seed bulk %d: %,d seeds in %dms%n", processNumber, range, (System.currentTimeMillis() - startTime));
+        System.out.printf("RESULT Seed bulk %d: %d%n", processNumber, lowestLocationNumber);
         return lowestLocationNumber;
     }
 

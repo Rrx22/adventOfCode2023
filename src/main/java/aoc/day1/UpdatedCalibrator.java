@@ -10,8 +10,7 @@ import java.util.regex.Pattern;
 
 public class UpdatedCalibrator {
 
-    public static final Pattern NUMBER_PATTERN = Pattern.compile("(?=(one|two|three|four|five|six|seven|eight|nine|zero|\\d))");
-    private static Map<String, String> numberMap = new HashMap<>();
+    private static final Map<String, String> numberMap = new HashMap<>();
 
     public static void main(String[] args) {
 
@@ -19,12 +18,10 @@ public class UpdatedCalibrator {
         fillNumberMap();
 
         var calibratedValue = findCalibrationValue(calibrationDocument);
-
         System.out.println(calibratedValue);
     }
 
     private static int findCalibrationValue(List<String> calibrationDocument) {
-
         return calibrationDocument
                 .stream()
                 .mapToInt(UpdatedCalibrator::collectNumberFromLine)
@@ -32,7 +29,8 @@ public class UpdatedCalibrator {
     }
 
     private static int collectNumberFromLine(String line) {
-        var matcher = NUMBER_PATTERN.matcher(line);
+        Pattern numberPattern = Pattern.compile("(?=(one|two|three|four|five|six|seven|eight|nine|\\d))");
+        var matcher = numberPattern.matcher(line);
 
         List<String> numbers = new ArrayList<>();
         while (matcher.find()) {

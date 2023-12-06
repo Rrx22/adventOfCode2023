@@ -10,8 +10,11 @@ public class BoatRace {
         var input = FileUtil.readFile("day6");
         var times = input.get(0).replace("Time:", "").trim().split("\\s+");
         var distances = input.get(1).replace("Distance:", "").trim().split("\\s+");
+        System.out.println("----------------");
         System.out.println("Race options using poorly kerned input: " + raceWithPoorKerning(times, distances));
+        System.out.println("----------------");
         System.out.println("Race options using correct input      : " + race(times, distances));
+        System.out.println("----------------");
     }
 
     private static int race(String[] timeStrings, String[] distanceStrings) {
@@ -31,14 +34,15 @@ public class BoatRace {
     }
 
     private static int computeOptionsFor(long raceTime, long distanceToWin) {
-        int numberOfOptions = 0;
         for (int buttonPressedTime = 0; buttonPressedTime < raceTime; buttonPressedTime++) {
-            long distanceWhenPressed = buttonPressedTime * (raceTime - buttonPressedTime);
+            long leftOverRaceTime = raceTime - buttonPressedTime;
+            long distanceWhenPressed = buttonPressedTime * leftOverRaceTime;
             if (distanceWhenPressed > distanceToWin) {
-                numberOfOptions += 1;
+                int numberOfOptions = (int) (leftOverRaceTime - buttonPressedTime) + 1;
+                System.out.printf("Time %d has %d options (Press button anywhere from %d to %d milliseconds!)%n", raceTime, numberOfOptions, buttonPressedTime, leftOverRaceTime);
+                return numberOfOptions;
             }
         }
-        System.out.printf("Time %d has %d options%n", raceTime, numberOfOptions);
-        return numberOfOptions;
+        return 0;
     }
 }

@@ -15,13 +15,11 @@ public class CamelCardGame {
         var t0 = System.currentTimeMillis();
         Game game = setUpCamelCards();
         System.out.printf("Won %d playing Camel Cards in %dms!%n", game.play(), System.currentTimeMillis() - t0);
-        System.out.println(game.play() == 248812215);
 
         t0 = System.currentTimeMillis();
         jokerRule = true;
         game = setUpCamelCards();
         System.out.printf("Won %d playing Camel Cards in %dms!%n", game.play(), System.currentTimeMillis() - t0);
-        System.out.println(game.play() == 250057090);
     }
 
     private static Game setUpCamelCards() {

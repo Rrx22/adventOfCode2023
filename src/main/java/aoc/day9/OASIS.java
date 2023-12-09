@@ -17,15 +17,15 @@ public class OASIS {
 
     public static void main(String[] args) {
         var oasisReading = FileUtil.readFile("day9");
-        int forecastData = analyzeReading(oasisReading, false);
-        int historicData = analyzeReading(oasisReading, true);
-        System.out.println("\nO.A.S.I.S. FORECAST ANALYSIS: " + forecastData);
-        System.out.println("O.A.S.I.S. HISTORIC ANALYSIS: " + historicData);
+        int forecast = OASIS.analyze(oasisReading, false);
+        int historic = OASIS.analyze(oasisReading, true);
+        System.out.println("\nO.A.S.I.S. FORECAST ANALYSIS: " + forecast);
+        System.out.println("O.A.S.I.S. HISTORIC ANALYSIS: " + historic);
     }
 
-    private static int analyzeReading(List<String> oasisReading, boolean historic) {
+    private static int analyze(List<String> oasisReading, boolean historic) {
         int data = 0;
-        System.out.println((historic ? "HISTORIC" : "FORECAST") + " DATA");
+        System.out.println("\n" + (historic ? "HISTORIC" : "FORECAST") + " DATA");
         for (var s : oasisReading) {
             var arr = s.split("\\s+");
             var numbers = Arrays.stream(arr).map(Integer::parseInt).toList();

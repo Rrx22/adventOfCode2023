@@ -41,10 +41,8 @@ public class OASIS {
         for (int i = 1; i < row.size(); i++) {
             sequences.add(row.get(i) - row.get(i - 1));
         }
-
-        if (sequences.stream().allMatch(i -> i == 0)) {
-            return row.getLast();
-        }
-        return row.getLast() + extrapolate(sequences);
+        return sequences.stream().allMatch(i -> i == 0)
+                ? row.getLast()
+                : row.getLast() + extrapolate(sequences);
     }
 }

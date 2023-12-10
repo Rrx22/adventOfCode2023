@@ -8,10 +8,6 @@ import java.util.*;
 public class PipeJumper {
 
     private static final char STARTFINISH = 'S';
-    private static final String UP = "|7F";
-    private static final String DOWN = "|JL";
-    private static final String LEFT = "-LF";
-    private static final String RIGHT = "-7J";
     public static final char VISITED = '█';
     private static Map<String, int[]> DIRECTIONS = Map.of(
             "DOWN", new int[]{1, 0},

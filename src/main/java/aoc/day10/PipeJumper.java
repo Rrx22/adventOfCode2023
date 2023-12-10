@@ -40,6 +40,14 @@ public class PipeJumper {
         return (int) Arrays.stream(matrix).flatMap(Arrays::stream).filter(n -> n.type == '+').count();
     }
 
+    /**
+     * Will iterate every possible option until it finds an exit. If there is no exit, we have found a nest.
+     * In the end, each passed node is marked isEnclosed = false|true.
+     * For optimization, any already marked node is skipped.
+     * Blocking walls are either the boundaries of the matrix or █-chars (i.e. VISITED nodes)
+     * @param matrix The matrix to be scanned
+     * @param start The Node coordinates to start scanning from
+     */
     private static void scanForNests(Node[][] matrix, int[] start) {
         Stack<int[]> pathStack = new Stack<>();
         pathStack.push(start);
@@ -50,8 +58,8 @@ public class PipeJumper {
             int row = current[0];
             int col = current[1];
 
-            if (row == 0 || row == matrix.length-1 || col == 0 || col == matrix[0].length-1) {
-                for(var n : seen) {
+            if (row == 0 || row == matrix.length - 1 || col == 0 || col == matrix[0].length - 1) {
+                for (var n : seen) {
                     n.type = '.';
                     n.isEnclosed = false;
                 }
@@ -61,11 +69,9 @@ public class PipeJumper {
             Node node = matrix[row][col];
             if (node.type != VISITED && node.type != '+') {
                 seen.add(node);
-                int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};  // Up, Right, Down, Left
-
                 boolean foundNextStep = false;
 
-                for (int[] direction : directions) {
+                for (int[] direction : DIRECTIONS.values()) {
                     int newRow = row + direction[0];
                     int newCol = col + direction[1];
                     Node newNode = matrix[newRow][newCol];
@@ -85,7 +91,7 @@ public class PipeJumper {
                 pathStack.pop();  // Backtrack
             }
         }
-        for(var n : seen) {
+        for (var n : seen) {
             n.type = '+';
             n.isEnclosed = true;
         }
@@ -98,6 +104,7 @@ public class PipeJumper {
         int jumps = 1;
         if (log) System.out.println(currentMove);
 
+        //collecting data for part 2 (outer edges of our pipe matrix)
         int lowestX = current[0];
         int highestX = current[0];
         int lowestY = current[1];
@@ -108,14 +115,17 @@ public class PipeJumper {
             jumps++;
             if (log) System.out.println(currentMove);
 
+            //collecting data for part 2 (outer edges of our pipe matrix)
             if (currentMove.coords[0] < lowestX) lowestX = currentMove.coords[0];
             if (currentMove.coords[0] > highestX) highestX = currentMove.coords[0];
             if (currentMove.coords[1] < lowestY) lowestY = currentMove.coords[1];
             if (currentMove.coords[1] > highestY) highestY = currentMove.coords[1];
         }
 
-        matrix[currentMove.coords[0]][currentMove.coords[1]] = VISITED;
+        //collecting data for part 2 (outer edges of our pipe matrix)
         OUTER_EDGES = new int[]{lowestX, highestX, lowestY, highestY};
+
+        matrix[currentMove.coords[0]][currentMove.coords[1]] = VISITED;
         return jumps;
     }
 
@@ -143,7 +153,7 @@ public class PipeJumper {
     }
 
     private static Move findFirstJump(char[][] matrix, int x, int y) {
-        int newX = x + DIRECTIONS.get("DOWN")[0];
+        int newX = x + DIRECTIONS.get("DOWN")[0]; // - Arnold Schwarznegger
         int newY = y + DIRECTIONS.get("DOWN")[1];
         return new Move("DOWN", "START", matrix[newX][newY], new int[]{newX, newY});
     }
@@ -192,18 +202,16 @@ public class PipeJumper {
     private static void printTheMatrix(char[][] matrix) {
         for (char[] row : matrix) {
             for (char value : row) {
-                System.out.print(value + " ");
+                System.out.print(value);
             }
             System.out.println();
         }
     }
 
     private static void printTheMatrix(Node[][] narrowedDownMatrix) {
-        int i = 0;
-        for (Node[] row : narrowedDownMatrix) {
+        for (int i = 0; i < narrowedDownMatrix.length; i++){
             System.out.printf("%3d:", i);
-            i++;
-            for (Node node : row) {
+            for (Node node : narrowedDownMatrix[i]) {
                 System.out.print(node.type);
             }
             System.out.println();
@@ -211,12 +219,10 @@ public class PipeJumper {
     }
 
     record Move(String newDirection, String previousDirection, char type, int[] coords) {
-
         @Override
         public String toString() {
             return STR. "[\{ coords[0] }, \{ coords[1] }]  > from \{ previousDirection } to \{ newDirection }< bring us to '\{ type }' " ;
         }
-
     }
 
     public static class Node {

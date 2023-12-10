@@ -7,16 +7,16 @@ import java.util.*;
 
 public class PipeJumper {
 
+    private static final boolean log = false;
     private static final char STARTFINISH = 'S';
     public static final char VISITED = '█';
-    private static Map<String, int[]> DIRECTIONS = Map.of(
+    private static final Map<String, int[]> DIRECTIONS = Map.of(
             "DOWN", new int[]{1, 0},
             "RIGHT", new int[]{0, 1},
             "LEFT", new int[]{0, -1},
             "UP", new int[]{-1, 0}
     );
     private static int[] OUTER_EDGES;
-    private static final boolean log = false;
 
     public static void main(String[] args) {
         var matrix = createTheMatrix();
@@ -26,27 +26,21 @@ public class PipeJumper {
         var possibleNestLocations = scanMatrix(narrowedDownMatrix);
 
         printTheMatrix(narrowedDownMatrix);
-        System.out.println(STR. "Jumped the matrix \{ matrixJumps } times. Result: \{ matrixJumps / 2 }." );
+        System.out.println(STR. "\nJumped the matrix \{ matrixJumps } times. Result: \{ matrixJumps / 2 }." );
         System.out.println(STR. "Matrix scan identified \{ possibleNestLocations } possible locations for nesting." );
     }
 
     private static int scanMatrix(Node[][] matrix) {
-        int nestCount = 0;
-        int totalCount = 0;
         for (int i = 0; i < matrix.length; i++) {
             var row = matrix[i];
             for (int j = 0; j < row.length; j++) {
-                boolean enclosed = isEnclosed(matrix, new int[]{i, j});
-                if (enclosed) {
-                    nestCount++;
-                }
-                totalCount++;
+                scanForNests(matrix, new int[]{i, j});
             }
         }
         return (int) Arrays.stream(matrix).flatMap(Arrays::stream).filter(n -> n.type == '+').count();
     }
 
-    private static boolean isEnclosed(Node[][] matrix, int[] start) {
+    private static void scanForNests(Node[][] matrix, int[] start) {
         Stack<int[]> pathStack = new Stack<>();
         pathStack.push(start);
         Set<Node> seen = new HashSet<>();
@@ -61,7 +55,7 @@ public class PipeJumper {
                     n.type = '.';
                     n.isEnclosed = false;
                 }
-                return false;  // Exit found
+                return; // path to exit was found, so quit method
             }
 
             Node node = matrix[row][col];
@@ -95,7 +89,6 @@ public class PipeJumper {
             n.type = '+';
             n.isEnclosed = true;
         }
-        return true;
     }
 
     private static int enterTheMatrix(char[][] matrix) {
@@ -150,7 +143,7 @@ public class PipeJumper {
     }
 
     private static Move findFirstJump(char[][] matrix, int x, int y) {
-        int newX = x + DIRECTIONS.get("DOWN")[0]; // Hard coded ... why not 😁
+        int newX = x + DIRECTIONS.get("DOWN")[0];
         int newY = y + DIRECTIONS.get("DOWN")[1];
         return new Move("DOWN", "START", matrix[newX][newY], new int[]{newX, newY});
     }
@@ -196,15 +189,6 @@ public class PipeJumper {
         return narrowedDownMatrix;
     }
 
-    record Move(String newDirection, String previousDirection, char type, int[] coords) {
-
-        @Override
-        public String toString() {
-            return STR. "[\{ coords[0] }, \{ coords[1] }]  > from \{ previousDirection } to \{ newDirection }< bring us to '\{ type }' " ;
-        }
-
-    }
-
     private static void printTheMatrix(char[][] matrix) {
         for (char[] row : matrix) {
             for (char value : row) {
@@ -224,6 +208,15 @@ public class PipeJumper {
             }
             System.out.println();
         }
+    }
+
+    record Move(String newDirection, String previousDirection, char type, int[] coords) {
+
+        @Override
+        public String toString() {
+            return STR. "[\{ coords[0] }, \{ coords[1] }]  > from \{ previousDirection } to \{ newDirection }< bring us to '\{ type }' " ;
+        }
+
     }
 
     public static class Node {

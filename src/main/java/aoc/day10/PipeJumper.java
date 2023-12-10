@@ -65,7 +65,7 @@ public class PipeJumper {
             }
 
             Node node = matrix[row][col];
-            if (node.type != VISITED) {
+            if (node.type != VISITED && node.type != '+') {
                 seen.add(node);
                 int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};  // Up, Right, Down, Left
 
@@ -76,7 +76,7 @@ public class PipeJumper {
                     int newCol = col + direction[1];
                     Node newNode = matrix[newRow][newCol];
 
-                    if (newNode.type != VISITED && !seen.contains(newNode)) {
+                    if (newNode.type != VISITED && newNode.type != '+' && !seen.contains(newNode)) {
                         pathStack.push(new int[]{newRow, newCol});
                         seen.add(newNode);
                         foundNextStep = true;
@@ -220,7 +220,7 @@ public class PipeJumper {
             System.out.printf("%3d:", i);
             i++;
             for (Node node : row) {
-                System.out.print(node.type + " ");
+                System.out.print(node.type);
             }
             System.out.println();
         }

@@ -71,9 +71,17 @@ public class PipeJumper {
                 seen.add(node);
                 boolean foundNextStep = false;
 
-                for (int[] direction : DIRECTIONS.values()) {
+                List<int[]> directions = new ArrayList<>(DIRECTIONS.values()); // add diagonal checks
+                directions.add(new int[]{1, 1});
+                directions.add(new int[]{-1, -1});
+                directions.add(new int[]{1, -1});
+                directions.add(new int[]{-1, 1});
+                for (int[] direction : directions) {
                     int newRow = row + direction[0];
                     int newCol = col + direction[1];
+                    if (newRow < 0 || newRow >= matrix.length || newCol < 0 || newCol >= matrix[0].length){
+                        continue;
+                    }
                     Node newNode = matrix[newRow][newCol];
 
                     if (newNode.type != VISITED && newNode.type != '+' && !seen.contains(newNode)) {

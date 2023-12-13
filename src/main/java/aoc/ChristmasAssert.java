@@ -17,9 +17,9 @@ public class ChristmasAssert {
         test(assertion, value, "Assertion failed for value: " + value);
     }
 
-    public static void test(boolean assertion, Long value, String message) {
+    public static void test(boolean assertion, Long value, String errorMessage) {
         if (!assertion) {
-            throw new ChristmasException("\n" + message);
+            throw new ChristmasException("\n" + errorMessage);
         }
         System.out.println("-----------\nCHRISTMAS-SUCCESS: " + "Assertion was true for value: " + value + "\n-----------");
     }

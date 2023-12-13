@@ -3,79 +3,31 @@ package aoc.day13;
 import aoc.ChristmasAssert;
 import aoc.FileUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ReflectionNavigator {
 
-    private static int counter = 0;
-    private static final Map<Integer, Long> smudgedResults = new HashMap<>();
+    private static final boolean log = false;
 
     public static void main(String[] args) {
         List<List<String>> mirrorPatterns = organiseMirrorPatterns(FileUtil.readFile("day13"));
         ChristmasAssert.test(makeMirrorNotes(mirrorPatterns), 35521L);
-        ChristmasAssert.test(unsmudgeNotes(mirrorPatterns), 400L);
+        ChristmasAssert.test(unsmudgeNotes(mirrorPatterns), 34795L);
     }
 
     private static long makeMirrorNotes(List<List<String>> mirrorPattern) {
         long sum = 0L;
         for (List<String> pattern : mirrorPattern) {
-            long result = navigatePattern(pattern, true) + navigatePattern(pattern, false);
-            sum += result;
-            smudgedResults.put(counter++, result);
+            long rowResult = navigatePattern(pattern, true);
+            long colResult = navigatePattern(pattern, false);
+            sum += rowResult + colResult;
         }
         return sum;
-    }
-
-    private static long unsmudgeNotes(List<List<String>> mirrorPattern) {
-        counter = 0;
-        long sum = 0L;
-        for (List<String> pattern : mirrorPattern) {
-            var t0 = System.currentTimeMillis();
-            System.out.println("STARTED " + (counter + 1));
-            sum += unsmudgeNote(pattern);
-            System.out.println(STR."FINISHED \{ counter + 1 } IN \{ System.currentTimeMillis() - t0 }ms");
-        }
-        return sum;
-    }
-
-    private static long unsmudgeNote(List<String> pattern) {
-        long currentVal = smudgedResults.get(counter++);
-        long attempts = 0L;
-        long result;
-        List<String> copyList = new ArrayList<>(pattern);
-        while (true) {
-            for (int i = 0; i < pattern.size(); i++) {
-                String line = pattern.get(i);
-                for (int j = 0; j < line.length(); j++) {
-                    if (attempts > (long) pattern.size() * pattern.get(0).length()) {
-                        System.out.println("ERROR TRIED ALL OPTIONS");
-                        return 0L;
-                    }
-                    char c = line.charAt(j) == '.' ? '#' : '.';
-                    String start = (j == 0) ? "" : line.substring(0, j);
-                    String end = (j == line.length() - 1) ? "" : line.substring(j + 1);
-                    copyList.set(i, start + c + end);
-
-                    result = navigatePattern(copyList, true);
-                    if (result == 0) {
-                        result = navigatePattern(copyList, false);
-                    }
-                    if (result != 0L && result != currentVal) {
-                        System.out.println(STR."PlACED \{ c } AT [\{ i }, \{ j }] - NEW RESULT = \{ result }");
-                        return result;
-                    }
-                    attempts++;
-                }
-            }
-        }
     }
 
     private static long navigatePattern(List<String> pattern, boolean scanHorizontally) {
         int max = scanHorizontally ? pattern.size() : pattern.get(1).length();
-        System.out.println("ANALYZING " + (scanHorizontally ? "ROW" : "COL"));
+        if (log) System.out.println("ANALYZING " + (scanHorizontally ? "ROW" : "COL"));
 
         for (int i = 1; i < max; i++) {
             var curr = scanHorizontally ? pattern.get(i) : getColumn(i, pattern);
@@ -84,7 +36,7 @@ public class ReflectionNavigator {
             if (curr.equals(prev)) {
                 int checkCount = Math.min(i - 1, max - i - 1);
                 boolean match = true;
-                System.out.printf("CHECK: [%d, %d]    %s - %s%n", checkCount, checkCount + 1, prev, curr);
+                if (log) System.out.printf("CHECK: [%d, %d]    %s - %s%n", checkCount, checkCount + 1, prev, curr);
 
                 for (int j = 0; j < checkCount; j++) {
                     int currIdx = i - j - 2;
@@ -92,22 +44,70 @@ public class ReflectionNavigator {
                     String original = scanHorizontally ? pattern.get(currIdx) : getColumn(currIdx, pattern);
                     String reflection = scanHorizontally ? pattern.get(reflIdx) : getColumn(reflIdx, pattern);
                     if (!original.equals(reflection)) {
-                        System.out.printf("MISS : [%d, %d] %s - %s%n", currIdx, reflIdx, original, reflection);
+                        if (log) System.out.printf("MISS : [%d, %d] %s - %s%n", currIdx, reflIdx, original, reflection);
                         match = false;
                         break;
                     } else {
-                        System.out.printf("MATCH: [%d, %d] %s - %s%n", currIdx, reflIdx, original, reflection);
+                        if (log) System.out.printf("MATCH: [%d, %d] %s - %s%n", currIdx, reflIdx, original, reflection);
                     }
                 }
                 if (match) {
                     long result = scanHorizontally ? (i * 100L) : i;
-                    System.out.println("GOOD : " + result);
+                    if (log) System.out.println("GOOD : " + result);
                     return result;
                 }
             }
         }
-        System.out.println("FAIL : " + 0L);
+        if (log) System.out.println("FAIL : " + 0L);
         return 0L;
+    }
+
+    private static long unsmudgeNotes(List<List<String>> mirrorPatterns) {
+        long sum = 0L;
+        for (var pattern : mirrorPatterns) {
+            sum += unsmudgeNote(pattern, false) * 100L;
+            sum += unsmudgeNote(pattern, true);
+        }
+        return sum;
+    }
+
+    private static int unsmudgeNote(final List<String> pattern, boolean columns) {
+        int max = columns ? pattern.get(0).length() : pattern.size();
+        for (int i = 1; i < max; i++) {
+            String prev = columns ? getColumn(i - 1, pattern) : pattern.get(i - 1);
+            String current = columns ? getColumn(i, pattern) : pattern.get(i);
+            int initialSmudges = getNrSmudges(prev, current);
+            if (initialSmudges == 0 || initialSmudges == 1) {
+                int elementsToCheck = Math.min(i - 1, max - i - 1);
+                boolean matches = true;
+                boolean smudgeFound = false;
+                for (int el = 0; el < elementsToCheck; el++) {
+                    String first = columns ? getColumn(i - el - 2, pattern) : pattern.get(i - el - 2);
+                    String second = columns ? getColumn(i + el + 1, pattern) : pattern.get(i + el + 1);
+                    int nrSmudges = getNrSmudges(first, second);
+                    if (nrSmudges > 1 || (initialSmudges == 1 && nrSmudges == 1) || (nrSmudges == 1 && smudgeFound)) {
+                        matches = false;
+                        break;
+                    } else if (nrSmudges == 1) {
+                        smudgeFound = true;
+                    }
+                }
+                if (matches && (initialSmudges == 1 ^ smudgeFound)) {
+                    return i;
+                }
+            }
+        }
+        return 0;
+    }
+
+    private static int getNrSmudges(String s1, String s2) {
+        int total = 0;
+        for (int i = 0; i < s1.length(); i++) {
+            if (s1.charAt(i) != s2.charAt(i)) {
+                total++;
+            }
+        }
+        return total;
     }
 
     private static String getColumn(int index, List<String> pattern) {

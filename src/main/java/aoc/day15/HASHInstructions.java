@@ -4,7 +4,6 @@ import aoc.ChristmasAssert;
 import aoc.FileUtil;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 public class HASHInstructions {
     /**
@@ -17,50 +16,44 @@ public class HASHInstructions {
      * Arrangement
      * Procedure
      */
-    private static final Map<Long, Deque<Lens>> HASHMAP = new HashMap<>();
+    final Map<Long, Deque<Lens>> HASHMAP = new HashMap<>();
 
-    public static void main(String[] args) {
+    void main() {
         ChristmasAssert.test(decryptHASH(), 507666L);
         ChristmasAssert.test(executeHASHMAP(), 233537L);
     }
 
-    private static long decryptHASH() {
+    long decryptHASH() {
         var csvFile = FileUtil.readFile("day15").getFirst();
         long sum = 0L;
-        var hashes = csvFile.split(",");
-        for (var hash : hashes) {
+        for (var hash : csvFile.split(",")) {
             sum += decrypt(hash);
             updateHASHMAP(hash);
         }
         return sum;
     }
 
-    private static long decrypt(String hash) {
-        return hash.chars().reduce(0, (acc, value) -> (acc + value) * 17 % 256); // accumulator + value
-    }
-
-    private static void updateHASHMAP(String hash) {
+    void updateHASHMAP(String hash) {
         var idx = hash.contains("=") ? hash.indexOf('=') : hash.indexOf('-');
         var label = hash.substring(0, idx);
         var box = decrypt(label);
         HASHMAP.computeIfAbsent(box, k -> new ArrayDeque<>());
 
         var lenses = HASHMAP.get(box);
-        Predicate<Lens> labelFunction = l -> l.label.equals(label);
         if (hash.charAt(idx) == '-') { // if operation is '-', remove the lens from the Deque
-            lenses.removeIf(labelFunction);
+            lenses.removeIf(l -> l.label.equals(label));
             return;
         }
 
         var focalLength = Long.parseLong(String.valueOf(hash.charAt(hash.length() - 1))); // here operation is '='
-        if (lenses.stream().anyMatch(labelFunction)) {  // update the existing lens
-            lenses.stream().filter(labelFunction).findFirst().orElseThrow().focalLength = focalLength;
+        if (lenses.stream().anyMatch(l -> l.label.equals(label))) {  // update the existing lens
+            lenses.stream().filter(l -> l.label.equals(label)).findFirst().orElseThrow().focalLength = focalLength;
         } else { // add the lens
             lenses.addLast(new Lens(label, focalLength));
         }
     }
 
-    private static long executeHASHMAP() {
+    long executeHASHMAP() {
         long sum = 0L;
         for (var entry : HASHMAP.entrySet()) { // for each box
             int max = entry.getValue().size();
@@ -71,9 +64,14 @@ public class HASHInstructions {
         return sum;
     }
 
-    static class Lens {
+    long decrypt(String hash) {
+        return hash.chars().reduce(0, (acc, value) -> (acc + value) * 17 % 256); // accumulator + value
+    }
+
+    class Lens {
         public final String label;
         public long focalLength;
+
         public Lens(String label, long focalLength) {
             this.label = label;
             this.focalLength = focalLength;

@@ -11,7 +11,7 @@ public class MirrorContraption {
 
     void main() {
         mapGrid();
-        energizeTiles(0, 0, RIGHT);
+        energizeTiles(RIGHT, 0, 0);
         ChristmasAssert.test(analyzeGrid(false), 6816L);
 
         identifyAndSetOptimalConfiguration();
@@ -27,21 +27,21 @@ public class MirrorContraption {
             optimal = compare(optimal, tryNewConfiguration(RIGHT, i, 0));
         }
         grid = mapGrid();
-        energizeTiles(optimal.x, optimal.y, optimal.direction);
+        energizeTiles(optimal.direction, optimal.x, optimal.y);
     }
 
     Configuration compare(Configuration optimal, Configuration newConfig) {
         return (newConfig.result > optimal.result) ? newConfig : optimal;
     }
 
-    Configuration tryNewConfiguration(Direction right, int x, int y) {
+    Configuration tryNewConfiguration(Direction direction, int x, int y) {
         grid = mapGrid();
-        energizeTiles(x, y, right);
+        energizeTiles(direction, x, y);
         var result = analyzeGrid(false);
-        return new Configuration(x, y, result, right);
+        return new Configuration(x, y, result, direction);
     }
 
-    void energizeTiles(int x, int y, Direction direction) {
+    void energizeTiles(Direction direction, int x, int y) {
         while (x >= 0 && x < grid.length && y >= 0 && y < grid[0].length) {
             var tile = grid[x][y];
             var wasAlreadyEnergized = tile.isEnergized; // if a splitter splits & is already energized, we do not need to traverse it again
@@ -64,16 +64,16 @@ public class MirrorContraption {
             } else if ('-' == tile.type) { // splitter type
                 if (direction == UP || direction == DOWN) {
                     if (!wasAlreadyEnergized) {
-                        energizeTiles(x, y, LEFT);
-                        energizeTiles(x, y, RIGHT);
+                        energizeTiles(LEFT, x, y);
+                        energizeTiles(RIGHT, x, y);
                     }
                     break;
                 }
             } else if ('|' == tile.type) { // splitter type
                 if (direction == LEFT || direction == RIGHT) {
                     if (!wasAlreadyEnergized) {
-                        energizeTiles(x, y, UP);
-                        energizeTiles(x, y, DOWN);
+                        energizeTiles(UP, x, y);
+                        energizeTiles(DOWN, x, y);
                     }
                     break;
                 }

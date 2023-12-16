@@ -14,57 +14,37 @@ public class MirrorContraption {
         energizeTiles(0, 0, RIGHT);
         ChristmasAssert.test(analyzeGrid(false), 6816L);
 
-        findAndSetToOptimalConfiguration();
+        identifyAndSetOptimalConfiguration();
         ChristmasAssert.test(analyzeGrid(true), 8163L);
     }
 
-    private void findAndSetToOptimalConfiguration() {
-        int maxX = grid.length;
-        int maxY = grid[0].length;
-
+    void identifyAndSetOptimalConfiguration() {
         var optimal = new Configuration(0, 0, 0L, UP);
-
-        for (int i = 0; i < maxX; i++) {
-            var config= changeAndAnalyzeConfiguration(i, 0, RIGHT);
-            if (config.result > optimal.result) {
-                optimal = config;
-            }
+        for (var i = 0; i < grid.length; i++) {
+            optimal = compare(optimal, tryNewConfiguration(UP, grid.length - 1, i));
+            optimal = compare(optimal, tryNewConfiguration(DOWN, 0, i));
+            optimal = compare(optimal, tryNewConfiguration(LEFT, i, grid[0].length - 1));
+            optimal = compare(optimal, tryNewConfiguration(RIGHT, i, 0));
         }
-        for (int i = 0; i < maxX; i++) {
-            var config = changeAndAnalyzeConfiguration(i, grid[0].length - 1, LEFT);
-            if (config.result > optimal.result) {
-                optimal = config;
-            }
-        }
-        for (int i = 0; i < maxY; i++) {
-            var config = changeAndAnalyzeConfiguration(0, i, DOWN);
-            if (config.result > optimal.result) {
-                optimal = config;
-            }
-        }
-        for (int i = 0; i < maxY; i++) {
-            var config = changeAndAnalyzeConfiguration(grid.length - 1, i, UP);
-            if (config.result > optimal.result) {
-                optimal = config;
-            }
-        }
-
-        System.out.println(STR."RESULT: \{optimal.direction} [\{optimal.x}, \{optimal.y}] \{optimal.result}");
         grid = mapGrid();
         energizeTiles(optimal.x, optimal.y, optimal.direction);
     }
 
-    Configuration changeAndAnalyzeConfiguration(int x, int y, Direction right) {
+    Configuration compare(Configuration optimal, Configuration newConfig) {
+        return (newConfig.result > optimal.result) ? newConfig : optimal;
+    }
+
+    Configuration tryNewConfiguration(Direction right, int x, int y) {
         grid = mapGrid();
         energizeTiles(x, y, right);
-        long result = analyzeGrid(false);
+        var result = analyzeGrid(false);
         return new Configuration(x, y, result, right);
     }
 
-    private void energizeTiles(int x, int y, Direction direction) {
-        while (!outOfBounds(x, y)) {
+    void energizeTiles(int x, int y, Direction direction) {
+        while (x >= 0 && x < grid.length && y >= 0 && y < grid[0].length) {
             var tile = grid[x][y];
-            var wasAlreadyEnergized = tile.isEnergized;
+            var wasAlreadyEnergized = tile.isEnergized; // if a splitter splits & is already energized, we do not need to traverse it again
             tile.isEnergized = true;
 
             if ('/' == tile.type) { // Mirror type
@@ -103,40 +83,36 @@ public class MirrorContraption {
         }
     }
 
-    private boolean outOfBounds(int x, int y) {
-        return x < 0 || x >= grid.length || y < 0 || y >= grid[0].length;
-    }
-
     Tile[][] mapGrid() {
         var input = FileUtil.readFile("day16");
         grid = new Tile[input.size()][input.getFirst().length()];
         for (int i = 0; i < input.size(); i++) {
             var charArr = input.get(i).toCharArray();
             for (int j = 0; j < charArr.length; j++) {
-                char c = charArr[j];
+                var c = charArr[j];
                 grid[i][j] = new Tile(c);
             }
         }
         return grid;
     }
 
-    private long analyzeGrid(boolean print) {
-        if (print) System.out.println("\n");
-        long energizedGrids = 0L;
-        for (int i = 0; i < grid.length; i++) {
-            Tile[] tiles = grid[i];
-            if (print) System.out.printf("%3d  ", i);
-            for (int j = 0; j < grid[0].length; j++) {
-                Tile tile = tiles[j];
+    long analyzeGrid(boolean print) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n");
+        var energizedGrids = 0L;
+        for (var i = 0; i < grid.length; i++) {
+            var tiles = grid[i];
+            sb.append(String.format("%3d  ", i));
+            for (var j = 0; j < grid[0].length; j++) {
+                var tile = tiles[j];
                 if (tile.isEnergized) {
                     energizedGrids++;
                 }
-                if (print) System.out.print(STR."\{tile.isEnergized ? '#' : tile.type} ");
+                sb.append(STR."\{tile.isEnergized ? '#' : tile.type} ");
             }
-            if (print) System.out.println();
+            sb.append("\n");
         }
-
-        if (print) System.out.println();
+        if (print) System.out.println(sb);
         return energizedGrids;
     }
 
@@ -145,10 +121,8 @@ public class MirrorContraption {
     static class Tile {
         public final char type;
         public boolean isEnergized;
-
         public Tile(char type) {
             this.type = type;
-            isEnergized = false;
         }
     }
 
@@ -157,16 +131,10 @@ public class MirrorContraption {
         DOWN(1, 0),
         LEFT(0, -1),
         RIGHT(0, 1);
-
-        public final int x;
-        public final int y;
-
+        public final int x, y;
         Direction(int x, int y) {
             this.x = x;
             this.y = y;
         }
     }
-
-
-
 }

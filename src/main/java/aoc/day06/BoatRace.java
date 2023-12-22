@@ -1,4 +1,4 @@
-package aoc.day6;
+package aoc.day06;
 
 import aoc.ChristmasException;
 import aoc.FileUtil;

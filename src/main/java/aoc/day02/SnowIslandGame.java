@@ -1,4 +1,4 @@
-package aoc.day2;
+package aoc.day02;
 
 import aoc.FileUtil;
 

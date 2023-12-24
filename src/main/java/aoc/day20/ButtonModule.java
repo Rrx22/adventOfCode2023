@@ -11,17 +11,15 @@ public class ButtonModule {
     public static final char FLIPFLOP = '%';
     public static final String BROADCASTER = "broadcaster";
 
-
     void main() {
         ButtonModule buttonModule = new ButtonModule();
         int pressCount = 1000;
         long result = 0L;
         for (int i = 0; i < pressCount; i++) {
-            result = buttonModule.press(false);
+            result = buttonModule.press();
             System.out.println(STR."Result: \{result}\n---");
         }
-        ChristmasAssert.test(result != 694094280, result);
-        ChristmasAssert.test(result > 694094280, result);
+        ChristmasAssert.test(result, 898557000L);
     }
 
     final Map<String, Module> allModules;
@@ -45,17 +43,16 @@ public class ButtonModule {
         }
     }
 
-    private long press(boolean isHighPulse) {
+    private long press() {
         long prevLowPulses = lowPulses;
         long prevHighPulses = highPulses;
 
         Deque<Module> queue = new ArrayDeque<>();
         Module broadcaster = allModules.get(BROADCASTER);
-        broadcaster.receivedPulses.add(isHighPulse);
+        broadcaster.receivedPulses.add(false);
         queue.offer(broadcaster);
-        if (isHighPulse) highPulses++;
-        else lowPulses++;
-        print("button", BROADCASTER, isHighPulse);
+        lowPulses++;
+        print("button", BROADCASTER, false);
 
         while (!queue.isEmpty() && noActionCounter < 5000) {
             Module current = queue.poll();
